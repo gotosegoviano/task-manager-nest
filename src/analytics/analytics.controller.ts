@@ -1,12 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { TaskStatusAnalyticsDetailedDto } from './dto/task-status-analytics-detailed.dto';
 import { UserEfficiencyAnalyticsDto } from './dto/user-efficiency-analytics.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('tasks/status')
   /**
    * Gets detailed analytics about the current status of all tasks.
@@ -23,6 +25,7 @@ export class AnalyticsController {
     return this.analyticsService.getTaskStatusAnalytics();
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get('users/efficiency')
   /**
    * Gets the efficiency of all users.

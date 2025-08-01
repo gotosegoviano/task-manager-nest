@@ -91,6 +91,16 @@ export class UsersService {
   }
 
   /**
+   * Finds a user by its email address.
+   * @param email - The email address of the user to be found.
+   * @returns Promise that resolves to the found User entity, or undefined if not found.
+   */
+  async findByEmail(email: string): Promise<User | undefined> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+    return user || undefined;
+  }
+
+  /**
    * Deletes a user by id.
    * @throws {NotFoundException} if a user with the given id does not exist.
    */

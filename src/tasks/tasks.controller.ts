@@ -9,18 +9,22 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
-  ForbiddenException,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FilterTasksDto } from './dto/filter-tasks.dto';
+import { JwtAuthGuard } from '@app/auth/jwt-auth.guard';
+import { AdminRoleGuard } from '@app/auth/guards/admin-role.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   /**
@@ -34,6 +38,7 @@ export class TasksController {
     return this.tasksService.create(createTaskDto);
   }
 
+  @UseGuards(AuthGuard('jwt'), AdminRoleGuard)
   @Get()
   /**
    * Finds all tasks that match the given filter.
@@ -55,6 +60,7 @@ export class TasksController {
     return this.tasksService.findOne(id);
   }
 
+  @UseGuards(AuthGuard('jwt'), AdminRoleGuard)
   @Patch(':id')
   /**
    * Updates a task.
@@ -69,6 +75,7 @@ export class TasksController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard('jwt'), AdminRoleGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   /**
    * Deletes a task by id.
@@ -76,12 +83,7 @@ export class TasksController {
    * @returns Promise that resolves to nothing.
    * @throws {NotFoundException} if a task with the given ID does not exist.
    */
-  async remove(@Param('id', ParseUUIDPipe) id: string, @Body('role') role: string) {
-    // Ensure only users with the 'admin' role can delete tasks
-    if (role !== 'admin') {
-      throw new ForbiddenException('Only administrators can delete tasks.');
-    }
-
-    await this.tasksService.remove(id);
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.tasksService.remove(id);
   }
 }
