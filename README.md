@@ -41,6 +41,12 @@ PORT=3000
 docker-compose up -d
 ```
 
+### Ejecutar las Migraciones
+Para crear y aplicar el esquema de la base de datos, ejecuta el siguiente comando:
+```bash
+npm run migration:run
+```
+
 ### Run the application
 ```bash
 npm run start:dev
@@ -108,4 +114,4 @@ Description: This endpoint evaluates each team member’s performance based on t
     "overdueCompletedTasksCount": 0
   }
 ]
-```json
+```
