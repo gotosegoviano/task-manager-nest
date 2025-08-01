@@ -4,10 +4,11 @@ import {
   ConflictException, // Importamos otra para errores de datos duplicados
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindManyOptions, QueryFailedError, Like } from 'typeorm'; // Importamos QueryFailedError
+import { Repository, QueryFailedError } from 'typeorm'; // Importamos QueryFailedError
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FilterUsersDto } from './dto/filter-users.dto';
+import { TaskStatus } from '@app/common/enums/task-status.enum';
 
 @Injectable()
 export class UsersService {
@@ -56,25 +57,46 @@ export class UsersService {
    * @param filterDto - Data transfer object containing the information needed to filter users.
    * @returns Promise that resolves to an array of User entities.
    */
-  findAll(filterDto: FilterUsersDto): Promise<User[]> {
-    const findOptions: FindManyOptions<User> = {
-      where: {}, // Inicializamos un objeto 'where' vacío
-    };
+  async findAll(filterDto: FilterUsersDto): Promise<any[]> {
+    const { role } = filterDto;
+    const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
-    if (filterDto.role) {
-      findOptions.where = { ...findOptions.where, role: filterDto.role };
+    // Eagerly load the tasks relationship for each user
+    queryBuilder.leftJoinAndSelect('user.tasks', 'tasks');
+
+    // Filtering logic
+    if (role) {
+      queryBuilder.andWhere('user.role = :role', { role });
     }
 
-    if (filterDto.name) {
-      // Usamos el operador Like para buscar nombres que contengan el valor
-      findOptions.where = { ...findOptions.where, name: Like(`%${filterDto.name}%`) };
-    }
+    // Get the users and their related tasks from the database
+    const users = await queryBuilder.getMany();
 
-    if (filterDto.email) {
-      findOptions.where = { ...findOptions.where, email: filterDto.email };
-    }
+    // Process each user to calculate completed tasks and total cost
+    return users.map((user) => {
+      // Destructure the user object to separate tasks from other data
+      const { tasks, ...userData } = user;
 
-    return this.usersRepository.find(findOptions);
+      // Filter the tasks to get only those that are 'terminada'
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const completedTasks = tasks.filter((task) => task.status === TaskStatus.TERMINADA);
+
+      // Calculate the count of completed tasks
+      const completedTasksCount = completedTasks.length;
+
+      // Calculate the sum of the monetary cost of all completed tasks
+      const totalCompletedTasksCost = completedTasks.reduce(
+        (sum, task) => sum + parseFloat(String(task.monetaryCost)),
+        0,
+      );
+
+      // Return a new object with the user data and the new calculated properties
+      return {
+        ...userData,
+        completedTasksCount,
+        totalCompletedTasksCost: parseFloat(totalCompletedTasksCost.toFixed(2)),
+      };
+    });
   }
 
   /**

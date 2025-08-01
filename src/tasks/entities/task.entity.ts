@@ -22,7 +22,7 @@ export class Task {
   @Column({
     type: 'enum',
     enum: TaskStatus,
-    default: TaskStatus.ACTIVE,
+    default: TaskStatus.ACTIVA,
   })
   status: TaskStatus;
 

@@ -10,10 +10,12 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   ForbiddenException,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { FilterTasksDto } from './dto/filter-tasks.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -34,11 +36,12 @@ export class TasksController {
 
   @Get()
   /**
-   * Finds all tasks.
+   * Finds all tasks that match the given filter.
+   * @param filterDto - Data transfer object containing the information needed to filter tasks.
    * @returns Promise that resolves to an array of Task entities.
    */
-  findAll() {
-    return this.tasksService.findAll();
+  findAll(@Query() filterDto: FilterTasksDto) {
+    return this.tasksService.findAll(filterDto);
   }
 
   @Get(':id')

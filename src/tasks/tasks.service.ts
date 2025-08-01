@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
+import { FilterTasksDto } from './dto/filter-tasks.dto';
 
 @Injectable()
 export class TasksService {
@@ -41,12 +42,42 @@ export class TasksService {
   }
 
   /**
-   * Retrieves all tasks with their assigned users.
+   * Finds all tasks that match the given filter.
+   * @param filterDto - Data transfer object containing the information needed to filter tasks.
    * @returns Promise that resolves to an array of Task entities.
    */
+  async findAll(filterDto: FilterTasksDto): Promise<Task[]> {
+    const { dueDate, title, assignedUserId, assignedUserNameOrEmail, sortOrder } = filterDto;
+    const queryBuilder = this.tasksRepository.createQueryBuilder('task');
 
-  findAll(): Promise<Task[]> {
-    return this.tasksRepository.find({ relations: ['assignedUsers'] });
+    // Join with assignedUsers to allow filtering on user properties
+    queryBuilder.leftJoinAndSelect('task.assignedUsers', 'assignedUsers');
+
+    // Filtering logic
+    if (title) {
+      queryBuilder.andWhere('LOWER(task.title) LIKE LOWER(:title)', { title: `%${title}%` });
+    }
+
+    if (dueDate) {
+      queryBuilder.andWhere('task.dueDate = :dueDate', { dueDate });
+    }
+
+    if (assignedUserId) {
+      queryBuilder.andWhere('assignedUsers.id = :assignedUserId', { assignedUserId });
+    }
+
+    if (assignedUserNameOrEmail) {
+      queryBuilder.andWhere(
+        '(LOWER(assignedUsers.name) LIKE LOWER(:name) OR LOWER(assignedUsers.email) LIKE LOWER(:email))',
+        { name: `%${assignedUserNameOrEmail}%`, email: `%${assignedUserNameOrEmail}%` },
+      );
+    }
+
+    // Sorting logic: Order by dueDate, defaulting to DESC
+    const orderDirection = sortOrder || 'DESC';
+    queryBuilder.orderBy('task.dueDate', orderDirection);
+
+    return queryBuilder.getMany();
   }
 
   /**

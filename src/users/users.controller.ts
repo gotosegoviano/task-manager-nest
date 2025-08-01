@@ -1,16 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  HttpStatus,
-  HttpCode,
-  ParseUUIDPipe,
-  Query,
-  Delete,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpStatus, HttpCode, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FilterUsersDto } from './dto/filter-users.dto';
@@ -41,27 +29,5 @@ export class UsersController {
    */
   findAll(@Query() filterDto: FilterUsersDto) {
     return this.usersService.findAll(filterDto);
-  }
-
-  @Get(':id')
-  /**
-   * Finds a user by its ID.
-   * @param id - The ID of the user to be found.
-   * @returns Promise that resolves to the found User entity.
-   * @throws {NotFoundException} if no user with the given ID exists.
-   */
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id', ParseUUIDPipe) id: string, @Body('role') role: string) {
-    // Check if the user has the 'admin' role
-    if (role !== 'admin') {
-      // If not, throw a 403 Forbidden error
-      throw new ForbiddenException('Only administrators can delete users.');
-    }
-    await this.usersService.remove(id);
   }
 }
