@@ -21,7 +21,7 @@ This is a backend API for a Task Manager built with NestJS, TypeScript, and Post
 
 ```bash
 git clone <repo-url>
-cd task-manager
+cd task-manager-nest
 npm install
 ```
 
