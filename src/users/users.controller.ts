@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Param, HttpStatus, HttpCode, ParseUUIDPipe, Query, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  HttpStatus,
+  HttpCode,
+  ParseUUIDPipe,
+  Query,
+  Delete,
+  ForbiddenException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { FilterUsersDto } from './dto/filter-users.dto';
@@ -44,7 +56,12 @@ export class UsersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string, @Body('role') role: string) {
+    // Check if the user has the 'admin' role
+    if (role !== 'admin') {
+      // If not, throw a 403 Forbidden error
+      throw new ForbiddenException('Only administrators can delete users.');
+    }
     await this.usersService.remove(id);
   }
 }
