@@ -23,6 +23,7 @@ This is a backend API for a Task Manager built with NestJS, TypeScript, and Post
 git clone <repo-url>
 cd task-manager
 npm install
+```
 
 ### Environment variables
 
@@ -33,13 +34,15 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=task_manager_db
 PORT=3000
+```
 
 ### Running PostgreSQL with Docker
 ```bash
 docker-compose up -d
-
+```
 
 ### Run the application
 ```bash
 npm run start:dev
 The API will be available at http://localhost:3000
+```
