@@ -42,7 +42,4 @@ docker-compose up -d
 ### Run the application
 ```bash
 npm run start:dev
-The API will be available at http://localhost:3000.
-
-### Contributing
-Feel free to open issues and pull requests.
+The API will be available at http://localhost:3000
