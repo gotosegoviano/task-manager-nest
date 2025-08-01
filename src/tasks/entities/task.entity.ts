@@ -29,9 +29,13 @@ export class Task {
   @Column('decimal', { precision: 10, scale: 2 })
   monetaryCost: number;
 
+  @Column({ type: 'timestamp', nullable: true })
+  completionDate: Date;
+
   @ManyToMany(() => User, (user) => user.tasks, {
     cascade: true, // This means task operations will affect assigned users.
   })
   @JoinTable()
   assignedUsers: User[];
+  updatedAt: Date;
 }

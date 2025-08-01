@@ -6,6 +6,7 @@ import { User } from 'src/users/entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { FilterTasksDto } from './dto/filter-tasks.dto';
+import { TaskStatus } from '@app/common/enums/task-status.enum';
 
 @Injectable()
 export class TasksService {
@@ -107,16 +108,21 @@ export class TasksService {
    * @throws {NotFoundException} if one or more assigned users do not exist.
    */
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
-    const task = await this.findOne(id); // Reuse findOne for validation
+    const task = await this.findOne(id);
 
-    // Update the properties
+    if (updateTaskDto.status === TaskStatus.TERMINADA && !task.completionDate) {
+      task.completionDate = new Date();
+    }
+
     Object.assign(task, updateTaskDto);
 
+    // If assignedUserIds are provided in the DTO, update the assigned users
     if (updateTaskDto.assignedUserIds) {
       const assignedUsers = await this.usersRepository.findBy({
         id: In(updateTaskDto.assignedUserIds),
       });
-      // Handle the case where some assigned users may not exist
+
+      // Check if all provided user IDs were found
       if (assignedUsers.length !== updateTaskDto.assignedUserIds.length) {
         throw new NotFoundException('One or more assigned users not found.');
       }

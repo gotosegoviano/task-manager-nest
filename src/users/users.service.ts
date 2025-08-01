@@ -30,10 +30,8 @@ export class UsersService {
       return await this.usersRepository.save(user);
     } catch (error) {
       if (error instanceof QueryFailedError && error.message.includes('duplicate key')) {
-        // Por ejemplo, si el email ya existe
         throw new ConflictException('User with this email already exists.');
       }
-      // Para cualquier otro error de la base de datos, lanzamos una excepción genérica
       throw error;
     }
   }
@@ -61,23 +59,17 @@ export class UsersService {
     const { role } = filterDto;
     const queryBuilder = this.usersRepository.createQueryBuilder('user');
 
-    // Eagerly load the tasks relationship for each user
     queryBuilder.leftJoinAndSelect('user.tasks', 'tasks');
 
-    // Filtering logic
     if (role) {
       queryBuilder.andWhere('user.role = :role', { role });
     }
-
-    // Get the users and their related tasks from the database
     const users = await queryBuilder.getMany();
 
     // Process each user to calculate completed tasks and total cost
     return users.map((user) => {
-      // Destructure the user object to separate tasks from other data
       const { tasks, ...userData } = user;
 
-      // Filter the tasks to get only those that are 'terminada'
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const completedTasks = tasks.filter((task) => task.status === TaskStatus.TERMINADA);
 
@@ -90,7 +82,6 @@ export class UsersService {
         0,
       );
 
-      // Return a new object with the user data and the new calculated properties
       return {
         ...userData,
         completedTasksCount,
